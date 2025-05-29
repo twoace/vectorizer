@@ -148,13 +148,7 @@ jobs:
         
         try {
           # Konvertiere Testbild zu PBM
-          python -c "
-          from PIL import Image
-          img = Image.open('test_input/test_square.png')
-          img = img.convert('1')  # Schwarz-weiß
-          img.save('test_input/test_square.pbm')
-          print('[OK] PBM-Datei erstellt')
-          "
+          python -c "from PIL import Image; img = Image.open('test_input/test_square.png'); img = img.convert('1'); img.save('test_input/test_square.pbm'); print('[OK] PBM-Datei erstellt')"
           
           # Führe Potrace aus
           if (Test-Path "test_input/test_square.pbm") {
