@@ -12,9 +12,10 @@ env.bak/
 venv.bak/
 
 # PyInstaller
-*.spec
 build/
 dist/
+*.dmg
+*.tar.gz
 
 # IDE
 .vscode/
@@ -38,6 +39,7 @@ Thumbs.db
 icon_preview.png
 test_temp*/
 output/
+dmg/
 
 # Potrace (will be downloaded automatically)
 potrace/ 

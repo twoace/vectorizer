@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 import os
 import sys
+import platform
 from PIL import Image, ImageFilter
 import subprocess
 import tempfile
@@ -15,12 +16,29 @@ class VectorizerApp:
         self.root.geometry("500x400")
         self.root.resizable(False, False)
         
+        # Fenster in den Vordergrund bringen (macOS)
+        self.root.lift()
+        self.root.attributes('-topmost', True)
+        self.root.after_idle(self.root.attributes, '-topmost', False)
+        
         # Variablen
         self.selected_folder = tk.StringVar()
         self.threshold_value = tk.IntVar(value=128)
         self.progress_var = tk.DoubleVar()
         
         self.setup_ui()
+        
+        # Fenster zentrieren
+        self.center_window()
+        
+    def center_window(self):
+        """Zentriert das Fenster auf dem Bildschirm"""
+        self.root.update_idletasks()
+        width = self.root.winfo_width()
+        height = self.root.winfo_height()
+        x = (self.root.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.root.winfo_screenheight() // 2) - (height // 2)
+        self.root.geometry(f'{width}x{height}+{x}+{y}')
         
     def setup_ui(self):
         # Hauptframe
@@ -157,18 +175,44 @@ class VectorizerApp:
             raise Exception(f"Fehler bei SVG Konvertierung: {str(e)}")
             
     def get_potrace_path(self):
-        """Gibt den Pfad zu potrace zurück"""
+        """Gibt den Pfad zu potrace zurück - plattformspezifisch"""
         if getattr(sys, 'frozen', False):
             # Wenn als exe ausgeführt
             base_path = sys._MEIPASS
         else:
             # Wenn als Python Script ausgeführt
             base_path = os.path.dirname(os.path.abspath(__file__))
-            
-        potrace_path = os.path.join(base_path, 'potrace', 'potrace.exe')
+        
+        system = platform.system().lower()
+        
+        if system == 'windows':
+            potrace_path = os.path.join(base_path, 'potrace', 'potrace.exe')
+        elif system == 'darwin':  # macOS
+            # Erst im lokalen Ordner schauen, dann im System
+            potrace_path = os.path.join(base_path, 'potrace', 'potrace')
+            if not os.path.exists(potrace_path):
+                # Versuche Homebrew potrace
+                potrace_path = '/opt/homebrew/bin/potrace'
+                if not os.path.exists(potrace_path):
+                    # Versuche MacPorts oder andere Installationen
+                    potrace_path = '/usr/local/bin/potrace'
+        else:  # Linux und andere Unix-Systeme
+            potrace_path = os.path.join(base_path, 'potrace', 'potrace')
+            if not os.path.exists(potrace_path):
+                # Versuche System-Installation
+                potrace_path = '/usr/bin/potrace'
+                if not os.path.exists(potrace_path):
+                    potrace_path = '/usr/local/bin/potrace'
         
         if not os.path.exists(potrace_path):
-            raise Exception("Potrace nicht gefunden. Bitte stellen Sie sicher, dass potrace.exe im potrace/ Ordner vorhanden ist.")
+            error_msg = f"Potrace nicht gefunden für {system}.\n\n"
+            if system == 'darwin':
+                error_msg += "Installieren Sie potrace mit: brew install potrace"
+            elif system == 'windows':
+                error_msg += "Stellen Sie sicher, dass potrace.exe im potrace/ Ordner vorhanden ist."
+            else:
+                error_msg += "Installieren Sie potrace mit: sudo apt-get install potrace (Ubuntu/Debian)\noder: sudo yum install potrace (CentOS/RHEL)"
+            raise Exception(error_msg)
             
         return potrace_path
         

@@ -1,0 +1,166 @@
+name: Build Vectorizer Apps
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  release:
+    types: [created]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+    
+    - name: Download potrace for Windows
+      run: |
+        mkdir potrace
+        curl -L -o potrace.zip http://potrace.sourceforge.net/download/1.16/potrace-1.16.win64.zip
+        powershell -command "Expand-Archive potrace.zip -DestinationPath temp"
+        copy temp\potrace-1.16.win64\potrace.exe potrace\
+        del potrace.zip
+        rmdir /s /q temp
+    
+    - name: Build Windows executable
+      run: |
+        pyinstaller vectorizer.spec
+    
+    - name: Upload Windows artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: BildVektorisierer-Windows
+        path: dist/BildVektorisierer.exe
+
+  build-macos:
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+    
+    - name: Install potrace
+      run: |
+        brew install potrace
+        mkdir -p potrace
+        cp /opt/homebrew/bin/potrace potrace/ || cp /usr/local/bin/potrace potrace/
+    
+    - name: Build macOS app
+      run: |
+        pyinstaller vectorizer.spec
+    
+    - name: Create DMG
+      run: |
+        mkdir -p dmg
+        cp -r dist/BildVektorisierer.app dmg/
+        ln -s /Applications dmg/Applications
+        hdiutil create -volname "Bild Vektorisierer" -srcfolder dmg -ov -format UDZO BildVektorisierer.dmg
+    
+    - name: Upload macOS artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: BildVektorisierer-macOS
+        path: BildVektorisierer.dmg
+
+  build-linux:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y potrace python3-tk
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+    
+    - name: Prepare potrace
+      run: |
+        mkdir -p potrace
+        cp /usr/bin/potrace potrace/
+    
+    - name: Build Linux executable
+      run: |
+        pyinstaller vectorizer.spec
+    
+    - name: Create Linux package
+      run: |
+        tar czf BildVektorisierer-Linux.tar.gz -C dist BildVektorisierer
+    
+    - name: Upload Linux artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: BildVektorisierer-Linux
+        path: BildVektorisierer-Linux.tar.gz
+
+  release:
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+    
+    - name: Upload Windows release asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: BildVektorisierer-Windows/BildVektorisierer.exe
+        asset_name: BildVektorisierer-Windows.exe
+        asset_content_type: application/octet-stream
+    
+    - name: Upload macOS release asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: BildVektorisierer-macOS/BildVektorisierer.dmg
+        asset_name: BildVektorisierer-macOS.dmg
+        asset_content_type: application/octet-stream
+    
+    - name: Upload Linux release asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: BildVektorisierer-Linux/BildVektorisierer-Linux.tar.gz
+        asset_name: BildVektorisierer-Linux.tar.gz
+        asset_content_type: application/gzip 
