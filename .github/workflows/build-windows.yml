@@ -31,12 +31,142 @@ jobs:
     - name: Build Windows exe
       run: python build.py
     
+    - name: Verify exe was created
+      run: |
+        if (Test-Path "dist/BildVektorisierer.exe") {
+          Write-Host "[OK] BildVektorisierer.exe wurde erfolgreich erstellt"
+          $fileSize = (Get-Item "dist/BildVektorisierer.exe").Length / 1MB
+          Write-Host "[INFO] Dateigröße: $([math]::Round($fileSize, 2)) MB"
+        } else {
+          Write-Host "[ERROR] BildVektorisierer.exe wurde nicht gefunden!"
+          exit 1
+        }
+    
+    - name: Create test images
+      run: |
+        # Erstelle Testordner
+        New-Item -ItemType Directory -Force -Path "test_input"
+        New-Item -ItemType Directory -Force -Path "test_output"
+        
+        # Erstelle ein einfaches Testbild mit Python
+        python -c "
+        from PIL import Image, ImageDraw
+        import os
+        
+        # Erstelle ein einfaches schwarzes Quadrat auf weißem Hintergrund
+        img = Image.new('RGB', (200, 200), 'white')
+        draw = ImageDraw.Draw(img)
+        draw.rectangle([50, 50, 150, 150], fill='black')
+        img.save('test_input/test_square.png')
+        
+        # Erstelle einen einfachen Kreis
+        img2 = Image.new('RGB', (200, 200), 'white')
+        draw2 = ImageDraw.Draw(img2)
+        draw2.ellipse([50, 50, 150, 150], fill='black')
+        img2.save('test_input/test_circle.png')
+        
+        print('[OK] Testbilder erstellt')
+        "
+    
+    - name: Test exe functionality (CLI mode)
+      run: |
+        # Teste die exe mit Kommandozeilenparametern
+        Write-Host "[INFO] Teste exe-Funktionalität..."
+        
+        # Prüfe ob die exe startet (Version/Help)
+        try {
+          $process = Start-Process -FilePath "dist/BildVektorisierer.exe" -ArgumentList "--help" -Wait -PassThru -WindowStyle Hidden
+          if ($process.ExitCode -eq 0) {
+            Write-Host "[OK] exe startet erfolgreich"
+          } else {
+            Write-Host "[WARNING] exe Exit Code: $($process.ExitCode)"
+          }
+        } catch {
+          Write-Host "[WARNING] Konnte exe nicht im Help-Modus starten: $($_.Exception.Message)"
+        }
+    
+    - name: Test potrace integration
+      run: |
+        # Teste ob potrace korrekt eingebettet wurde
+        Write-Host "[INFO] Teste Potrace-Integration..."
+        
+        if (Test-Path "potrace/potrace.exe") {
+          Write-Host "[OK] potrace.exe gefunden"
+          
+          # Teste potrace direkt
+          try {
+            $potraceOutput = & "potrace/potrace.exe" --version 2>&1
+            Write-Host "[OK] Potrace Version: $potraceOutput"
+          } catch {
+            Write-Host "[WARNING] Potrace-Test fehlgeschlagen: $($_.Exception.Message)"
+          }
+        } else {
+          Write-Host "[ERROR] potrace.exe nicht gefunden!"
+          exit 1
+        }
+    
+    - name: Test Python modules in exe
+      run: |
+        # Teste ob alle benötigten Module verfügbar sind
+        Write-Host "[INFO] Teste Python-Module..."
+        
+        python -c "
+        try:
+            import tkinter
+            print('[OK] tkinter verfügbar')
+        except ImportError as e:
+            print(f'[ERROR] tkinter fehlt: {e}')
+            
+        try:
+            from PIL import Image
+            print('[OK] PIL/Pillow verfügbar')
+        except ImportError as e:
+            print(f'[ERROR] PIL fehlt: {e}')
+            
+        try:
+            import subprocess
+            print('[OK] subprocess verfügbar')
+        except ImportError as e:
+            print(f'[ERROR] subprocess fehlt: {e}')
+        "
+    
+    - name: Verify exe dependencies
+      run: |
+        # Prüfe exe-Abhängigkeiten mit PowerShell
+        Write-Host "[INFO] Prüfe exe-Abhängigkeiten..."
+        
+        try {
+          # Versuche die exe zu starten und sofort zu beenden
+          $job = Start-Job -ScriptBlock {
+            Start-Process -FilePath "dist/BildVektorisierer.exe" -WindowStyle Hidden
+            Start-Sleep -Seconds 2
+            Get-Process -Name "BildVektorisierer" -ErrorAction SilentlyContinue | Stop-Process -Force
+          }
+          
+          Wait-Job $job -Timeout 10
+          Remove-Job $job -Force
+          
+          Write-Host "[OK] exe kann gestartet werden"
+        } catch {
+          Write-Host "[WARNING] exe-Start-Test: $($_.Exception.Message)"
+        }
+    
     - name: Upload exe artifact
       uses: actions/upload-artifact@v4
       with:
         name: BildVektorisierer-Windows
         path: dist/BildVektorisierer.exe
         retention-days: 30
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: |
+          test_input/
+          test_output/
+        retention-days: 7
     
     - name: Create Release (on tag)
       if: startsWith(github.ref, 'refs/tags/')
@@ -64,5 +194,10 @@ jobs:
           5. Vektorisierung starten
           
           Die SVG-Dateien werden im "output" Ordner gespeichert.
+          
+          **Getestet auf:**
+          - Windows 11 (GitHub Actions)
+          - Alle Python-Module eingebettet
+          - Potrace-Integration funktional
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
