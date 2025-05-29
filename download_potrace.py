@@ -21,7 +21,7 @@ def download_potrace():
     
     # Prüfe ob potrace.exe bereits existiert
     if (potrace_dir / "potrace.exe").exists():
-        print("✓ potrace.exe bereits vorhanden!")
+        print("[OK] potrace.exe bereits vorhanden!")
         return True
     
     try:
@@ -35,7 +35,7 @@ def download_potrace():
                 print(f"\rDownload: {percent}%", end="", flush=True)
         
         urllib.request.urlretrieve(potrace_url, filename, show_progress)
-        print("\n✓ Download abgeschlossen!")
+        print("\n[OK] Download abgeschlossen!")
         
         # Extrahiere ZIP
         print("Extrahiere Potrace...")
@@ -47,24 +47,24 @@ def download_potrace():
                     with zip_ref.open(file_info) as source:
                         with open(potrace_dir / "potrace.exe", 'wb') as target:
                             shutil.copyfileobj(source, target)
-                    print(f"✓ {file_info.filename} extrahiert!")
+                    print(f"[OK] {file_info.filename} extrahiert!")
                     break
             else:
                 raise Exception("potrace.exe nicht in ZIP gefunden!")
         
         # Lösche ZIP-Datei
         os.unlink(filename)
-        print("✓ Temporäre Dateien gelöscht!")
+        print("[OK] Temporäre Dateien gelöscht!")
         
         # Prüfe ob Extraktion erfolgreich war
         if (potrace_dir / "potrace.exe").exists():
-            print("✓ Potrace erfolgreich installiert!")
+            print("[OK] Potrace erfolgreich installiert!")
             return True
         else:
             raise Exception("Extraktion fehlgeschlagen!")
             
     except Exception as e:
-        print(f"\n❌ Fehler beim Download der 64-bit Version: {e}")
+        print(f"\n[ERROR] Fehler beim Download der 64-bit Version: {e}")
         
         # Versuche 32-bit Version
         try:
@@ -73,7 +73,7 @@ def download_potrace():
             filename = "potrace-1.16.win32.zip"
             
             urllib.request.urlretrieve(potrace_url, filename, show_progress)
-            print("\n✓ Download abgeschlossen!")
+            print("\n[OK] Download abgeschlossen!")
             
             with zipfile.ZipFile(filename, 'r') as zip_ref:
                 for file_info in zip_ref.filelist:
@@ -81,7 +81,7 @@ def download_potrace():
                         with zip_ref.open(file_info) as source:
                             with open(potrace_dir / "potrace.exe", 'wb') as target:
                                 shutil.copyfileobj(source, target)
-                        print(f"✓ {file_info.filename} extrahiert!")
+                        print(f"[OK] {file_info.filename} extrahiert!")
                         break
                 else:
                     raise Exception("potrace.exe nicht in ZIP gefunden!")
@@ -89,13 +89,13 @@ def download_potrace():
             os.unlink(filename)
             
             if (potrace_dir / "potrace.exe").exists():
-                print("✓ Potrace (32-bit) erfolgreich installiert!")
+                print("[OK] Potrace (32-bit) erfolgreich installiert!")
                 return True
             else:
                 raise Exception("Extraktion fehlgeschlagen!")
                 
         except Exception as e2:
-            print(f"\n❌ Fehler beim Download der 32-bit Version: {e2}")
+            print(f"\n[ERROR] Fehler beim Download der 32-bit Version: {e2}")
             print("\nBitte laden Sie Potrace manuell herunter:")
             print("1. Gehen Sie zu: https://potrace.sourceforge.net/download.html")
             print("2. Laden Sie potrace-1.16.win64.zip oder potrace-1.16.win32.zip herunter")
