@@ -54,12 +54,7 @@ def build_exe():
         # Versionsinformationen
         '--version-file=version_info.txt',
         # Icon hinzufügen
-        '--icon=icon.ico',
-        # Zusätzliche Metadaten
-        '--add-metadata=CompanyName:Aaron\'s Software',
-        '--add-metadata=FileDescription:Bild zu Vektor Konvertierer',
-        '--add-metadata=ProductName:BildVektorisierer',
-        '--add-metadata=ProductVersion:1.0.0'
+        '--icon=icon.ico'
     ]
     
     print("PyInstaller Argumente:")
