@@ -145,7 +145,51 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ github.ref_name }}
-        release_name: Release ${{ github.ref_name }}
+        release_name: Bild Vektorisierer ${{ github.ref_name }}
+        body: |
+          # 🎨 Bild Vektorisierer ${{ github.ref_name }}
+          
+          Eine benutzerfreundliche Desktop-Anwendung zur Konvertierung von Rasterbildern in Vektorgrafiken (SVG).
+          
+          ## ✨ Features
+          - 🖼️ Unterstützt PNG, JPG, JPEG, BMP, TIFF
+          - ⚙️ Einstellbarer Threshold-Wert (0-255)
+          - 🎯 Batch-Verarbeitung ganzer Ordner
+          - 📊 Fortschrittsanzeige
+          - 🖥️ Intuitive grafische Benutzeroberfläche
+          
+          ## 📥 Downloads
+          Wählen Sie die passende Version für Ihr Betriebssystem:
+          
+          - **Windows**: `BildVektorisierer-Windows.exe` - Direkt ausführbare Datei
+          - **macOS**: `BildVektorisierer-macOS.dmg` - Drag & Drop Installation
+          - **Linux**: `BildVektorisierer-Linux.tar.gz` - Entpacken und ausführen
+          
+          ## 🚀 Installation
+          
+          ### Windows
+          1. `BildVektorisierer-Windows.exe` herunterladen
+          2. Datei ausführen (Windows Defender Warnung mit "Trotzdem ausführen" bestätigen)
+          
+          ### macOS
+          1. `BildVektorisierer-macOS.dmg` herunterladen
+          2. DMG öffnen und App in den Programme-Ordner ziehen
+          3. Bei Sicherheitswarnung: Systemeinstellungen → Sicherheit → "Trotzdem öffnen"
+          
+          ### Linux
+          1. `BildVektorisierer-Linux.tar.gz` herunterladen
+          2. Entpacken: `tar -xzf BildVektorisierer-Linux.tar.gz`
+          3. Ausführen: `./BildVektorisierer/BildVektorisierer`
+          
+          ## 🛠️ Verwendung
+          1. Ordner mit Bildern auswählen
+          2. Threshold-Wert anpassen (Standard: 128)
+          3. "Vektorisierung starten" klicken
+          4. SVG-Dateien werden im `output/` Unterordner erstellt
+          
+          ---
+          
+          **Technische Details**: Basiert auf Python, tkinter, Pillow und potrace. Kompiliert mit PyInstaller für native Performance.
         draft: false
         prerelease: false
     
