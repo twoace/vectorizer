@@ -8,6 +8,10 @@ on:
     branches: [ main, master ]
   workflow_dispatch:  # Ermöglicht manuellen Start
 
+permissions:
+  contents: write  # Benötigt für Release-Erstellung
+  packages: write  # Optional, für Package-Uploads
+
 jobs:
   build-windows:
     runs-on: windows-latest
