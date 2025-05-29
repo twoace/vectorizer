@@ -44,19 +44,23 @@ def build_exe():
         'vectorizer.py',
         '--onefile',
         '--windowed',
-        '--name=BildVektorisierer',
+        '--name=BildVektorisierer_v1.0',
         f'--add-data={potrace_dir}{os.pathsep}potrace',
         '--distpath=dist',
         '--workpath=build',
         '--specpath=.',
         '--clean',
-        '--noconfirm'
+        '--noconfirm',
+        # Versionsinformationen
+        '--version-file=version_info.txt',
+        # Icon hinzufügen
+        '--icon=icon.ico',
+        # Zusätzliche Metadaten
+        '--add-metadata=CompanyName:Aaron\'s Software',
+        '--add-metadata=FileDescription:Bild zu Vektor Konvertierer',
+        '--add-metadata=ProductName:BildVektorisierer',
+        '--add-metadata=ProductVersion:1.0.0'
     ]
-    
-    # Icon hinzufügen falls vorhanden
-    icon_path = current_dir / "icon.ico"
-    if icon_path.exists():
-        args.append(f'--icon={icon_path}')
     
     print("PyInstaller Argumente:")
     for arg in args:

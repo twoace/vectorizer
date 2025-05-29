@@ -28,17 +28,20 @@ jobs:
     - name: Download Potrace
       run: python download_potrace.py
     
+    - name: Create Icon
+      run: python create_icon.py
+    
     - name: Build Windows exe
       run: python build.py
     
     - name: Verify exe was created
       run: |
-        if (Test-Path "dist/BildVektorisierer.exe") {
-          Write-Host "[OK] BildVektorisierer.exe wurde erfolgreich erstellt"
-          $fileSize = (Get-Item "dist/BildVektorisierer.exe").Length / 1MB
+        if (Test-Path "dist/BildVektorisierer_v1.0.exe") {
+          Write-Host "[OK] BildVektorisierer_v1.0.exe wurde erfolgreich erstellt"
+          $fileSize = (Get-Item "dist/BildVektorisierer_v1.0.exe").Length / 1MB
           Write-Host "[INFO] Dateigröße: $([math]::Round($fileSize, 2)) MB"
         } else {
-          Write-Host "[ERROR] BildVektorisierer.exe wurde nicht gefunden!"
+          Write-Host "[ERROR] BildVektorisierer_v1.0.exe wurde nicht gefunden!"
           exit 1
         }
     
@@ -73,7 +76,7 @@ jobs:
         # Teste exe-Eigenschaften ohne sie zu starten
         Write-Host "[INFO] Teste exe-Eigenschaften..."
         
-        $exePath = "dist/BildVektorisierer.exe"
+        $exePath = "dist/BildVektorisierer_v1.0.exe"
         if (Test-Path $exePath) {
           # Dateigröße prüfen
           $fileSize = (Get-Item $exePath).Length
@@ -180,7 +183,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: BildVektorisierer-Windows
-        path: dist/BildVektorisierer.exe
+        path: dist/BildVektorisierer_v1.0.exe
         retention-days: 30
     
     - name: Upload test results
@@ -197,12 +200,12 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
-        files: dist/BildVektorisierer.exe
+        files: dist/BildVektorisierer_v1.0.exe
         name: "Bild Vektorisierer ${{ github.ref_name }}"
         body: |
           🎉 **Neue Version verfügbar!**
           
-          **Download:** BildVektorisierer.exe
+          **Download:** BildVektorisierer_v1.0.exe
           
           **Features:**
           - ✅ Vollständig eigenständige Windows-exe
@@ -212,7 +215,7 @@ jobs:
           - ✅ Automatische SVG-Ausgabe
           
           **Verwendung:**
-          1. BildVektorisierer.exe herunterladen
+          1. BildVektorisierer_v1.0.exe herunterladen
           2. Doppelklick zum Starten
           3. Ordner mit Bildern auswählen
           4. Threshold einstellen (Standard: 128)
