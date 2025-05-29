@@ -29,6 +29,7 @@ jobs:
     
     - name: Download potrace for Windows
       run: |
+        if (Test-Path potrace) { Remove-Item -Recurse -Force potrace }
         mkdir potrace
         curl -L -o potrace.zip http://potrace.sourceforge.net/download/1.16/potrace-1.16.win64.zip
         powershell -command "Expand-Archive potrace.zip -DestinationPath temp"
