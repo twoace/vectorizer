@@ -28,9 +28,6 @@ jobs:
     - name: Download Potrace
       run: python download_potrace.py
     
-    - name: Create Icon
-      run: python create_icon.py
-    
     - name: Build Windows exe
       run: python build.py
     
