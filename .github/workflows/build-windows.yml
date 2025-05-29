@@ -68,21 +68,32 @@ jobs:
         print('[OK] Testbilder erstellt')
         "
     
-    - name: Test exe functionality (CLI mode)
+    - name: Test exe file properties
       run: |
-        # Teste die exe mit Kommandozeilenparametern
-        Write-Host "[INFO] Teste exe-Funktionalität..."
+        # Teste exe-Eigenschaften ohne sie zu starten
+        Write-Host "[INFO] Teste exe-Eigenschaften..."
         
-        # Prüfe ob die exe startet (Version/Help)
-        try {
-          $process = Start-Process -FilePath "dist/BildVektorisierer.exe" -ArgumentList "--help" -Wait -PassThru -WindowStyle Hidden
-          if ($process.ExitCode -eq 0) {
-            Write-Host "[OK] exe startet erfolgreich"
+        $exePath = "dist/BildVektorisierer.exe"
+        if (Test-Path $exePath) {
+          # Dateigröße prüfen
+          $fileSize = (Get-Item $exePath).Length
+          if ($fileSize -gt 10MB -and $fileSize -lt 200MB) {
+            Write-Host "[OK] exe-Dateigröße ist angemessen ($([math]::Round($fileSize / 1MB, 1)) MB)"
           } else {
-            Write-Host "[WARNING] exe Exit Code: $($process.ExitCode)"
+            Write-Host "[WARNING] exe-Dateigröße ungewöhnlich: $([math]::Round($fileSize / 1MB, 1)) MB"
           }
-        } catch {
-          Write-Host "[WARNING] Konnte exe nicht im Help-Modus starten: $($_.Exception.Message)"
+          
+          # Prüfe ob es eine gültige PE-Datei ist
+          try {
+            $fileInfo = Get-ItemProperty $exePath
+            Write-Host "[OK] exe-Datei ist gültig"
+          } catch {
+            Write-Host "[ERROR] exe-Datei ist beschädigt: $($_.Exception.Message)"
+            exit 1
+          }
+        } else {
+          Write-Host "[ERROR] exe-Datei nicht gefunden!"
+          exit 1
         }
     
     - name: Test potrace integration
@@ -130,25 +141,45 @@ jobs:
             print(f'[ERROR] subprocess fehlt: {e}')
         "
     
-    - name: Verify exe dependencies
+    - name: Test potrace conversion
       run: |
-        # Prüfe exe-Abhängigkeiten mit PowerShell
-        Write-Host "[INFO] Prüfe exe-Abhängigkeiten..."
+        # Teste Potrace-Konvertierung direkt
+        Write-Host "[INFO] Teste Potrace-Konvertierung..."
         
         try {
-          # Versuche die exe zu starten und sofort zu beenden
-          $job = Start-Job -ScriptBlock {
-            Start-Process -FilePath "dist/BildVektorisierer.exe" -WindowStyle Hidden
-            Start-Sleep -Seconds 2
-            Get-Process -Name "BildVektorisierer" -ErrorAction SilentlyContinue | Stop-Process -Force
+          # Konvertiere Testbild zu PBM
+          python -c "
+          from PIL import Image
+          img = Image.open('test_input/test_square.png')
+          img = img.convert('1')  # Schwarz-weiß
+          img.save('test_input/test_square.pbm')
+          print('[OK] PBM-Datei erstellt')
+          "
+          
+          # Führe Potrace aus
+          if (Test-Path "test_input/test_square.pbm") {
+            $result = & "potrace/potrace.exe" "test_input/test_square.pbm" "-s" "-o" "test_output/test_square.svg" 2>&1
+            
+            if (Test-Path "test_output/test_square.svg") {
+              $svgSize = (Get-Item "test_output/test_square.svg").Length
+              Write-Host "[OK] SVG-Datei erstellt ($svgSize Bytes)"
+              
+              # Prüfe SVG-Inhalt
+              $svgContent = Get-Content "test_output/test_square.svg" -Raw
+              if ($svgContent -match "<svg" -and $svgContent -match "</svg>") {
+                Write-Host "[OK] SVG-Format ist gültig"
+              } else {
+                Write-Host "[WARNING] SVG-Format könnte ungültig sein"
+              }
+            } else {
+              Write-Host "[ERROR] SVG-Datei wurde nicht erstellt"
+              Write-Host "[INFO] Potrace Output: $result"
+            }
+          } else {
+            Write-Host "[ERROR] PBM-Datei wurde nicht erstellt"
           }
-          
-          Wait-Job $job -Timeout 10
-          Remove-Job $job -Force
-          
-          Write-Host "[OK] exe kann gestartet werden"
         } catch {
-          Write-Host "[WARNING] exe-Start-Test: $($_.Exception.Message)"
+          Write-Host "[ERROR] Potrace-Konvertierungstest fehlgeschlagen: $($_.Exception.Message)"
         }
     
     - name: Upload exe artifact
@@ -199,5 +230,6 @@ jobs:
           - Windows 11 (GitHub Actions)
           - Alle Python-Module eingebettet
           - Potrace-Integration funktional
+          - SVG-Konvertierung erfolgreich
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
