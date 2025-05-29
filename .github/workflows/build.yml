@@ -30,12 +30,12 @@ jobs:
     - name: Download potrace for Windows
       run: |
         if (Test-Path potrace) { Remove-Item -Recurse -Force potrace }
-        mkdir potrace
-        curl -L -o potrace.zip http://potrace.sourceforge.net/download/1.16/potrace-1.16.win64.zip
-        powershell -command "Expand-Archive potrace.zip -DestinationPath temp"
-        copy temp\potrace-1.16.win64\potrace.exe potrace\
-        del potrace.zip
-        rmdir /s /q temp
+        New-Item -ItemType Directory -Name potrace
+        Invoke-WebRequest -Uri "http://potrace.sourceforge.net/download/1.16/potrace-1.16.win64.zip" -OutFile "potrace.zip"
+        Expand-Archive -Path "potrace.zip" -DestinationPath "temp"
+        Copy-Item "temp\potrace-1.16.win64\potrace.exe" "potrace\"
+        Remove-Item "potrace.zip"
+        Remove-Item -Recurse -Force "temp"
     
     - name: Build Windows executable
       run: |
