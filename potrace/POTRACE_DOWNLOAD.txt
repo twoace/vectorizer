@@ -1,0 +1,33 @@
+POTRACE DOWNLOAD ANLEITUNG
+===========================
+
+Um das Programm vollständig zu nutzen, benötigen Sie potrace.exe für Windows.
+
+DOWNLOAD OPTIONEN:
+
+1. Offizielle Website:
+   http://potrace.sourceforge.net/download.html
+   
+2. Windows Binärdateien:
+   Suchen Sie nach "potrace for Windows" oder "potrace.exe"
+   
+3. Alternative Quellen:
+   - GitHub Releases von Potrace-Ports
+   - Package Manager wie Chocolatey: choco install potrace
+
+INSTALLATION:
+1. Laden Sie potrace.exe herunter
+2. Legen Sie potrace.exe in diesen Ordner (potrace/)
+3. Stellen Sie sicher, dass die Datei "potrace.exe" heißt
+
+ÜBERPRÜFUNG:
+Nach dem Download sollte die Dateistruktur so aussehen:
+potrace/
+└── potrace.exe
+
+Das Programm wird automatisch nach potrace.exe in diesem Ordner suchen.
+
+Bei Problemen:
+- Stellen Sie sicher, dass potrace.exe ausführbar ist
+- Überprüfen Sie, ob Windows die Datei blockiert (Rechtsklick → Eigenschaften → Entsperren)
+- Verwenden Sie eine 64-bit Version von Potrace für bessere Kompatibilität 

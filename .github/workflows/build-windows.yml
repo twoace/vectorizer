@@ -1,0 +1,68 @@
+name: Build Windows exe
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # Ermöglicht manuellen Start
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Download Potrace
+      run: python download_potrace.py
+    
+    - name: Build Windows exe
+      run: python build.py
+    
+    - name: Upload exe artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: BildVektorisierer-Windows
+        path: dist/BildVektorisierer.exe
+        retention-days: 30
+    
+    - name: Create Release (on tag)
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: dist/BildVektorisierer.exe
+        name: "Bild Vektorisierer ${{ github.ref_name }}"
+        body: |
+          🎉 **Neue Version verfügbar!**
+          
+          **Download:** BildVektorisierer.exe
+          
+          **Features:**
+          - ✅ Vollständig eigenständige Windows-exe
+          - ✅ Keine Installation erforderlich
+          - ✅ Unterstützt PNG, JPG, JPEG, BMP, TIFF
+          - ✅ Konfigurierbarer Threshold-Wert
+          - ✅ Automatische SVG-Ausgabe
+          
+          **Verwendung:**
+          1. BildVektorisierer.exe herunterladen
+          2. Doppelklick zum Starten
+          3. Ordner mit Bildern auswählen
+          4. Threshold einstellen (Standard: 128)
+          5. Vektorisierung starten
+          
+          Die SVG-Dateien werden im "output" Ordner gespeichert.
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 

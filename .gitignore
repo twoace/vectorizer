@@ -1,0 +1,31 @@
+# PyInstaller Build-Dateien
+build/
+dist/
+*.spec
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Potrace Binary (muss manuell heruntergeladen werden)
+potrace/potrace.exe
+
+# Temporäre Dateien
+*.tmp
+*.temp
+
+# IDE Dateien
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS Dateien
+.DS_Store
+Thumbs.db
+
+# Test Ordner
+test_images/
+output/ 
