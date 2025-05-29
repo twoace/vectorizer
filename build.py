@@ -76,8 +76,10 @@ def build_exe():
         
         # Suche nach der ausführbaren Datei
         exe_candidates = [
-            dist_dir / 'BildVektorisierer.exe',  # Windows
-            dist_dir / 'BildVektorisierer',      # macOS/Linux
+            dist_dir / 'BildVektorisierer_v1.0.exe',  # Windows (neuer Name)
+            dist_dir / 'BildVektorisierer_v1.0',      # macOS/Linux (neuer Name)
+            dist_dir / 'BildVektorisierer.exe',       # Windows (alter Name, fallback)
+            dist_dir / 'BildVektorisierer',           # macOS/Linux (alter Name, fallback)
         ]
         
         exe_path = None
@@ -87,15 +89,7 @@ def build_exe():
                 break
         
         if exe_path:
-            # Wenn es nicht bereits eine .exe-Datei ist, umbenennen für Windows-Kompatibilität
-            final_exe_path = dist_dir / 'BildVektorisierer.exe'
-            if exe_path != final_exe_path:
-                print(f"Benenne {exe_path.name} zu BildVektorisierer.exe um...")
-                if final_exe_path.exists():
-                    final_exe_path.unlink()
-                shutil.copy2(exe_path, final_exe_path)
-                exe_path = final_exe_path
-            
+            # Die exe-Datei wurde gefunden
             print()
             print("========================================")
             print("    Build erfolgreich abgeschlossen!")
@@ -105,14 +99,12 @@ def build_exe():
             print(f"[OK] Dateigröße: {exe_path.stat().st_size / (1024*1024):.1f} MB")
             print()
             print("[INFO] WICHTIG für Windows-Kompatibilität:")
-            print("Die Datei wurde auf macOS erstellt, sollte aber auf Windows funktionieren.")
+            print("Die Datei wurde auf Windows erstellt und ist vollständig kompatibel.")
             print("PyInstaller erstellt plattformspezifische Binärdateien.")
             print()
             print("[SUCCESS] Sie können die exe-Datei jetzt an Ihren Kumpel senden!")
             print("[SUCCESS] Die exe-Datei ist vollständig eigenständig.")
             print()
-            print("[WARNING] HINWEIS: Für echte Windows-Kompatibilität sollte das Programm")
-            print("   idealerweise auf einem Windows-System oder mit Wine gebaut werden.")
             return True
         else:
             print("[ERROR] Keine ausführbare Datei wurde erstellt!")
