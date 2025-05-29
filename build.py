@@ -19,7 +19,7 @@ def build_exe():
     # Schritt 1: Potrace automatisch herunterladen
     print("Schritt 1: Potrace herunterladen...")
     if not download_potrace():
-        print("❌ Potrace konnte nicht heruntergeladen werden!")
+        print("[ERROR] Potrace konnte nicht heruntergeladen werden!")
         print("Bitte laden Sie es manuell herunter und versuchen Sie es erneut.")
         return False
     print()
@@ -29,11 +29,11 @@ def build_exe():
     potrace_exe = potrace_dir / "potrace.exe"
     
     if not potrace_exe.exists():
-        print("❌ potrace.exe nicht gefunden!")
+        print("[ERROR] potrace.exe nicht gefunden!")
         print("Bitte stellen Sie sicher, dass potrace.exe im potrace/ Ordner vorhanden ist.")
         return False
     
-    print("✓ potrace.exe gefunden!")
+    print("[OK] potrace.exe gefunden!")
     print()
     
     # Schritt 3: PyInstaller Build
@@ -102,25 +102,25 @@ def build_exe():
             print("    Build erfolgreich abgeschlossen!")
             print("========================================")
             print()
-            print(f"✓ Die exe-Datei befindet sich in: {exe_path}")
-            print(f"✓ Dateigröße: {exe_path.stat().st_size / (1024*1024):.1f} MB")
+            print(f"[OK] Die exe-Datei befindet sich in: {exe_path}")
+            print(f"[OK] Dateigröße: {exe_path.stat().st_size / (1024*1024):.1f} MB")
             print()
-            print("🎉 WICHTIG für Windows-Kompatibilität:")
+            print("[INFO] WICHTIG für Windows-Kompatibilität:")
             print("Die Datei wurde auf macOS erstellt, sollte aber auf Windows funktionieren.")
             print("PyInstaller erstellt plattformspezifische Binärdateien.")
             print()
-            print("✅ Sie können die exe-Datei jetzt an Ihren Kumpel senden!")
-            print("✅ Die exe-Datei ist vollständig eigenständig.")
+            print("[SUCCESS] Sie können die exe-Datei jetzt an Ihren Kumpel senden!")
+            print("[SUCCESS] Die exe-Datei ist vollständig eigenständig.")
             print()
-            print("⚠️  HINWEIS: Für echte Windows-Kompatibilität sollte das Programm")
+            print("[WARNING] HINWEIS: Für echte Windows-Kompatibilität sollte das Programm")
             print("   idealerweise auf einem Windows-System oder mit Wine gebaut werden.")
             return True
         else:
-            print("❌ Keine ausführbare Datei wurde erstellt!")
+            print("[ERROR] Keine ausführbare Datei wurde erstellt!")
             return False
             
     except Exception as e:
-        print(f"❌ Fehler beim Build: {e}")
+        print(f"[ERROR] Fehler beim Build: {e}")
         return False
 
 def clean_build():
@@ -132,18 +132,18 @@ def clean_build():
         dir_path = current_dir / dir_name
         if dir_path.exists():
             shutil.rmtree(dir_path)
-            print(f"✓ {dir_name}/ gelöscht")
+            print(f"[OK] {dir_name}/ gelöscht")
     
     # Lösche .spec Dateien
     for spec_file in current_dir.glob('*.spec'):
         spec_file.unlink()
-        print(f"✓ {spec_file.name} gelöscht")
+        print(f"[OK] {spec_file.name} gelöscht")
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "clean":
         print("Lösche Build-Artefakte...")
         clean_build()
-        print("✓ Bereinigung abgeschlossen!")
+        print("[OK] Bereinigung abgeschlossen!")
     else:
         success = build_exe()
         if not success:
