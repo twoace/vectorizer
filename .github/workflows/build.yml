@@ -3,6 +3,7 @@ name: Build Vectorizer Apps
 on:
   push:
     branches: [ main, master ]
+    tags: [ 'v*' ]  # Bei Version-Tags auch ausführen
   pull_request:
     branches: [ main, master ]
   release:
@@ -126,6 +127,58 @@ jobs:
         name: BildVektorisierer-Linux
         path: BildVektorisierer-Linux.tar.gz
 
+  # Automatischer Release bei Tags
+  create-release:
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name }}
+        release_name: Release ${{ github.ref_name }}
+        draft: false
+        prerelease: false
+    
+    - name: Upload Windows release asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: BildVektorisierer-Windows/BildVektorisierer.exe
+        asset_name: BildVektorisierer-Windows.exe
+        asset_content_type: application/octet-stream
+    
+    - name: Upload macOS release asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: BildVektorisierer-macOS/BildVektorisierer.dmg
+        asset_name: BildVektorisierer-macOS.dmg
+        asset_content_type: application/octet-stream
+    
+    - name: Upload Linux release asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: BildVektorisierer-Linux/BildVektorisierer-Linux.tar.gz
+        asset_name: BildVektorisierer-Linux.tar.gz
+        asset_content_type: application/gzip
+
+  # Release-Job für manuell erstellte Releases
   release:
     needs: [build-windows, build-macos, build-linux]
     runs-on: ubuntu-latest
